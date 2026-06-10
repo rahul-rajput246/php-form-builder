@@ -1,6 +1,6 @@
 <?php
 
-header("Location: forms.php");
+header("Location: admin/forms.php");
 exit;
 
 ?>
