@@ -1,11 +1,12 @@
 <?php
 
-$host = "localhost";
+$host = "acela.proxy.rlwy.net";
 $user = "root";
-$pass = "";
-$db   = "form_builder";
+$pass = "DlEyosACpXDntezmCtiyCrBAGgSucSWm";
+$db   = "railway";
+$port = "59922";
 
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli($host, $user, $pass, $db, $port);
 
 if($conn->connect_error){
     die("Connection Failed");
