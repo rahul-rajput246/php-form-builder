@@ -2,7 +2,7 @@
 
     <div class="navbar-left">
 
-        <a href="public/index.php" class="navbar-logo">
+        <a href="../public/index.php" class="navbar-logo">
             Form<span>Builder</span>
         </a>
 
