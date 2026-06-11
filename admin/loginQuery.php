@@ -39,3 +39,4 @@ header(
     "Location: login.php?error=Invalid Credentials"
 );
 exit;
+?>

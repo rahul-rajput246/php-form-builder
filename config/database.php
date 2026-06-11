@@ -1,4 +1,3 @@
-
 <?php
 $host = "acela.proxy.rlwy.net";
 $user = "root";
