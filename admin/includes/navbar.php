@@ -2,9 +2,9 @@
 
     <div class="navbar-left">
 
-        <div class="navbar-logo">
+        <a href="public/index.php" class="navbar-logo">
             Form<span>Builder</span>
-        </div>
+        </a>
 
     </div>
 
