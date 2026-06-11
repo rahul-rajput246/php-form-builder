@@ -1,6 +1,7 @@
 <?php
 
 require_once '../config/database.php';
+require_once 'includes/auth.php';
 
 $id = (int)$_GET['id'];
 $form_id = (int)$_GET['form_id'];
@@ -104,7 +105,7 @@ if(isset($_POST['update_field']))
                             Email
                         </option>
 
-                        <option value="number" <?= $field['type']=='number'?'selected':'' ?>>
+                        <option value="number" min="0" max="10" <?= $field['type']=='number'?'selected':'' ?>>
                             Number
                         </option>
 

@@ -4,8 +4,10 @@
         <div class="admin-avatar">R</div>
 
         <div class="admin-info">
-            <h4>Rahul Rajput</h4>
-            <p>Administrator</p>
+            <h4>
+                <?= htmlspecialchars($_SESSION['admin_name']) ?>
+            </h4>
+            <p>Admin</p>
         </div>
     </div>
 
@@ -18,7 +20,7 @@
         <li class="menu-dropdown">
 
             <a href="#" class="dropdown-toggle">
-                📄 Forms
+                Forms
                 <span class="arrow">▼</span>
             </a>
 
@@ -40,25 +42,13 @@
 
         <li>
             <a href="manage-submissions.php">
-                📝 Submissions
+                Submissions
             </a>
         </li>
 
         <li>
-            <a href="manage-users.php">
-                👤 Users
-            </a>
-        </li>
-
-        <li>
-            <a href="settings.php">
-                ⚙ Settings
-            </a>
-        </li>
-
-        <li>
-            <a href="#">
-                🚪 Logout
+            <a href="logout.php">
+                Logout
             </a>
         </li>
 

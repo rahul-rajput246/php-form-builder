@@ -2,66 +2,211 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const fieldType = document.getElementById("fieldType");
     const optionsBox = document.getElementById("optionsBox");
-    const previewBtn = document.getElementById("previewFieldBtn");
     const previewContainer = document.getElementById("previewContainer");
 
-   if (fieldType && optionsBox) {
+    const labelInput = document.getElementById("label");
+    const placeholderInput = document.getElementById("placeholder");
+    const requiredField = document.getElementById("requiredField");
+    const optionsTextarea = document.querySelector(
+        'textarea[name="options"]'
+    );
 
-    function toggleOptions() {
+    /* Show/Hide Options Box */
 
-        const value = fieldType.value;
+    if (fieldType && optionsBox) {
 
-        if (
-            value === "dropdown" ||
-            value === "radio" ||
-            value === "checkbox"
-        ) {
-            optionsBox.style.display = "block";
-        } else {
-            optionsBox.style.display = "none";
+        function toggleOptions() {
+
+            const value = fieldType.value;
+
+            if (
+                value === "dropdown" ||
+                value === "radio" ||
+                value === "checkbox"
+            ) {
+                optionsBox.style.display = "block";
+            } else {
+                optionsBox.style.display = "none";
+            }
         }
+
+        toggleOptions();
+
+        fieldType.addEventListener(
+            "change",
+            toggleOptions
+        );
     }
 
-    toggleOptions();
+    /* Live Preview */
 
-    fieldType.addEventListener("change", toggleOptions);
-}
+    function renderPreview() {
 
-if (previewBtn && previewContainer) {
-
-    previewBtn.addEventListener("click", function () {
-
-        let type = fieldType.value;
-
-        let label = document.getElementById("label").value.trim();
-
-        if (label === '') {
-            label = type;
+        if (!previewContainer || !fieldType) {
+            return;
         }
 
-        let placeholder = document.getElementById("placeholder").value;
+        const type = fieldType.value;
 
-        previewContainer.innerHTML += `
+        const label =
+            labelInput?.value.trim() ||
+            "Field Label";
+
+        const placeholder =
+            placeholderInput?.value ||
+            "";
+
+        const required =
+            requiredField?.checked
+                ? '<span style="color:red">*</span>'
+                : '';
+
+        let html = `
             <div class="preview-field">
-                <label>${label}</label>
-                <input type="${type}" placeholder="${placeholder}">
+
+                <label>
+                    ${label}
+                    ${required}
+                </label>
+        `;
+
+        if (type === "textarea") {
+
+            html += `
+                <textarea
+                    placeholder="${placeholder}"
+                    rows="4"
+                ></textarea>
+            `;
+        }
+
+        else if (type === "dropdown") {
+
+            html += `<select>`;
+
+            const options =
+                optionsTextarea?.value
+                    .split("\n")
+                    .filter(option => option.trim()) || [];
+
+            options.forEach(option => {
+
+                html += `
+                    <option>
+                        ${option}
+                    </option>
+                `;
+            });
+
+            html += `</select>`;
+        }
+
+        else if (type === "radio") {
+
+            const options =
+                optionsTextarea?.value
+                    .split("\n")
+                    .filter(option => option.trim()) || [];
+
+            options.forEach(option => {
+
+                html += `
+                    <div class="preview-option">
+                        <input type="radio">
+                        <span>${option}</span>
+                    </div>
+                `;
+            });
+        }
+
+        else if (type === "checkbox") {
+
+            const options =
+                optionsTextarea?.value
+                    .split("\n")
+                    .filter(option => option.trim()) || [];
+
+            options.forEach(option => {
+
+                html += `
+                    <div class="preview-option">
+                        <input type="checkbox">
+                        <span>${option}</span>
+                    </div>
+                `;
+            });
+        }
+
+        else if (type === "file") {
+
+            html += `
+                <input type="file">
+            `;
+        }
+
+        else {
+
+            html += `
+                <input
+                    type="${type}"
+                    placeholder="${placeholder}"
+                >
+            `;
+        }
+
+        html += `
             </div>
         `;
-    });
-}
 
-    // Sidebar dropdown
+        previewContainer.innerHTML = html;
+    }
 
-    document.querySelectorAll('.dropdown-toggle').forEach(item => {
+    /* Live Events */
 
-        item.addEventListener('click', function(e){
+    fieldType?.addEventListener(
+        "change",
+        renderPreview
+    );
 
-            e.preventDefault();
+    labelInput?.addEventListener(
+        "input",
+        renderPreview
+    );
 
-            this.parentElement.classList.toggle('active');
+    placeholderInput?.addEventListener(
+        "input",
+        renderPreview
+    );
 
+    requiredField?.addEventListener(
+        "change",
+        renderPreview
+    );
+
+    optionsTextarea?.addEventListener(
+        "input",
+        renderPreview
+    );
+
+    renderPreview();
+
+    /* Sidebar Dropdown */
+
+    document
+        .querySelectorAll(".dropdown-toggle")
+        .forEach(function (item) {
+
+            item.addEventListener(
+                "click",
+                function (e) {
+
+                    e.preventDefault();
+
+                    this.parentElement
+                        .classList
+                        .toggle("active");
+                }
+            );
         });
-
-    });
 
 });

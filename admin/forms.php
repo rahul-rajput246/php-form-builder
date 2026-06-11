@@ -1,5 +1,6 @@
 <?php
 require_once '../config/database.php';
+require_once 'includes/auth.php';
 
 $result = $conn->query("SELECT * FROM forms ORDER BY id DESC");
 ?>
@@ -14,12 +15,6 @@ $result = $conn->query("SELECT * FROM forms ORDER BY id DESC");
     <div class="content-area">
 
         <div class="container">
-
-            <?php if(isset($_GET['success'])): ?>
-            <div class="success">
-                <?= htmlspecialchars($_GET['success']) ?>
-            </div>
-            <?php endif; ?>
 
             <div class="header">
 
@@ -46,6 +41,12 @@ $result = $conn->query("SELECT * FROM forms ORDER BY id DESC");
                 </thead>
 
                 <tbody>
+
+                    <?php if(isset($_GET['success'])): ?>
+                    <div class="success">
+                        <?= htmlspecialchars($_GET['success']) ?>
+                    </div>
+                    <?php endif; ?>
 
                     <?php if($result->num_rows > 0): ?>
 
@@ -79,7 +80,7 @@ $result = $conn->query("SELECT * FROM forms ORDER BY id DESC");
                                 Edit
                             </a>
 
-                            <a href="delete-form.php?id=<?= $row['id']; ?>" class="btn btn-delete"
+                            <a href="delete.php?id=<?= $row['id']; ?>&type=form" class="btn btn-delete"
                                 onclick="return confirm('Delete this form?')">
                                 Delete
                             </a>

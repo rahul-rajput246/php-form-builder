@@ -1,6 +1,7 @@
 <?php
 
 require_once '../config/database.php';
+require_once 'includes/auth.php';
 
 $error = '';
 $success = '';
@@ -69,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <div class="container">
 
-            <h2>Create New Form</h2>
+            <h2 style="margin-bottom: 20px;">Create New Form</h2>
 
             <?php if(!empty($error)): ?>
             <div class="error">
@@ -97,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 </div>
 
-                <button type="submit" class="btn">
+                <button type="submit" class="btn btn-add">
                     Create Form
                 </button>
 

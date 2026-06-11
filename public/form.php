@@ -1,183 +1,254 @@
 <?php
-
 require_once '../config/database.php';
 
 $slug = $_GET['slug'] ?? '';
 
-$stmt = $conn->prepare("
-    SELECT *
-    FROM forms
-    WHERE slug = ?
-");
-
+$stmt = $conn->prepare("SELECT * FROM forms WHERE slug = ?");
 $stmt->bind_param("s", $slug);
 $stmt->execute();
-
 $form = $stmt->get_result()->fetch_assoc();
 
-if(!$form){
+if (!$form) {
     die("Form not found");
 }
 
-$fieldStmt = $conn->prepare("
-    SELECT *
-    FROM fields
-    WHERE form_id = ?
-");
-
+$fieldStmt = $conn->prepare("SELECT * FROM fields WHERE form_id = ?");
 $fieldStmt->bind_param("i", $form['id']);
 $fieldStmt->execute();
+$fields = $fieldStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-$fields = $fieldStmt->get_result();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-?>
+    $stmt = $conn->prepare("
+        INSERT INTO submissions (form_id)
+        VALUES (?)
+    ");
 
-<div class="public-form-container">
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
 
-    <h2><?= htmlspecialchars($form['name']) ?></h2>
+    $stmt->bind_param("i", $form['id']);
 
-    <form method="POST" enctype="multipart/form-data">
+    if (!$stmt->execute()) {
+        die("Submission failed: " . $stmt->error);
+    }
 
-        <?php while($field = $fields->fetch_assoc()): ?>
+    $submission_id = $conn->insert_id;
 
-        <div class="form-group">
+    if (!$submission_id) {
+        die("Submission ID not generated");
+    }
 
-            <label>
-                <?= htmlspecialchars($field['label']) ?>
-            </label>
+    $fieldStmt = $conn->prepare("
+        SELECT id, type
+        FROM fields
+        WHERE form_id = ?
+    ");
 
-            <?php
+    $fieldStmt->bind_param("i", $form['id']);
+    $fieldStmt->execute();
 
-        $name = "field_" . $field['id'];
-        $placeholder = htmlspecialchars($field['placeholder']);
+    $result = $fieldStmt->get_result();
 
-        switch($field['type']) {
+    while ($field = $result->fetch_assoc()) {
 
-            case 'text':
-                echo "
-                    <input
-                        type='text'
-                        name='{$name}'
-                        placeholder='{$placeholder}'
-                    >
-                ";
-                break;
+        $fieldName = 'field_' . (int)$field['id'];
 
-            case 'email':
-                echo "
-                    <input
-                        type='email'
-                        name='{$name}'
-                        placeholder='{$placeholder}'
-                    >
-                ";
-                break;
+        $value = '';
 
-            case 'number':
-                echo "
-                    <input
-                        type='number'
-                        name='{$name}'
-                        placeholder='{$placeholder}'
-                    >
-                ";
-                break;
-
-            case 'textarea':
-                echo "
-                    <textarea
-                        name='{$name}'
-                        placeholder='{$placeholder}'
-                    ></textarea>
-                ";
-                break;
-
-            case 'dropdown':
-
-                $options = explode("\n", $field['options']);
-
-                echo "<select name='{$name}'>";
-
-                foreach($options as $option) {
-
-                    $option = trim($option);
-
-                    echo "
-                        <option value='{$option}'>
-                            {$option}
-                        </option>
-                    ";
-                }
-
-                echo "</select>";
-
-                break;
-
-            case 'radio':
-
-                $options = explode("\n", $field['options']);
-
-                foreach($options as $option) {
-
-                    $option = trim($option);
-
-                    echo "
-                        <label>
-                            <input
-                                type='radio'
-                                name='{$name}'
-                                value='{$option}'
-                            >
-                            {$option}
-                        </label><br>
-                    ";
-                }
-
-                break;
-
-            case 'checkbox':
-
-                $options = explode("\n", $field['options']);
-
-                foreach($options as $option) {
-
-                    $option = trim($option);
-
-                    echo "
-                        <label>
-                            <input
-                                type='checkbox'
-                                name='{$name}[]'
-                                value='{$option}'
-                            >
-                            {$option}
-                        </label><br>
-                    ";
-                }
-
-                break;
-
-            case 'file':
-
-                echo "
-                    <input
-                        type='file'
-                        name='{$name}'
-                    >
-                ";
-
-                break;
+        if ($field['type'] === 'checkbox') {
+            $value = isset($_POST[$fieldName])
+                ? implode(',', $_POST[$fieldName])
+                : '';
+        } else {
+            $value = $_POST[$fieldName] ?? '';
         }
 
-        ?>
+        $save = $conn->prepare("
+            INSERT INTO submission_values
+            (submission_id, field_id, value)
+            VALUES (?, ?, ?)
+        ");
 
+        if (!$save) {
+            die("Prepare failed: " . $conn->error);
+        }
+
+        $save->bind_param(
+            "iis",
+            $submission_id,
+            $field['id'],
+            $value
+        );
+
+        if (!$save->execute()) {
+            die("Insert failed: " . $save->error);
+        }
+    }
+
+    $success = "Form submitted successfully!";
+}
+?>
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title><?= htmlspecialchars($form['name']) ?></title>
+
+    <style>
+    body {
+        font-family: Arial;
+        background: #f4f6f8;
+        margin: 0;
+    }
+
+    .container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    .field {
+   
+    margin-bottom: 20px;
+}
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        background: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #3730a3;
+    }
+
+    .success {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #28a745;
+    }
+
+    .error {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border-left: 4px solid #dc3545;
+    }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <?php if (isset($success)): ?>
+        <div class="success">
+            <?= htmlspecialchars($success) ?>
         </div>
+        <?php endif; ?>
 
-        <?php endwhile; ?>
+        <h2><?= htmlspecialchars($form['name']) ?></h2>
 
-        <button type="submit">
-            Submit
-        </button>
+        <form method="POST">
 
-    </form>
-</div>
+            <?php foreach ($fields as $field): ?>
+
+            <?php $name = "field_" . $field['id']; ?>
+
+            <div class="field">
+
+                <label><?= htmlspecialchars($field['label']) ?></label>
+
+                <?php switch ($field['type']) {
+
+                    case 'text': ?>
+                <input type="text" name="<?= $name ?>">
+                <?php break;
+
+                    case 'email': ?>
+                <input type="email" name="<?= $name ?>">
+                <?php break;
+
+                    case 'number': ?>
+                <input type="number" name="<?= $name ?>">
+                <?php break;
+
+                    case 'textarea': ?>
+                <textarea name="<?= $name ?>"></textarea>
+                <?php break;
+
+                    case 'dropdown': ?>
+                <select name="<?= $name ?>">
+                    <?php foreach (explode("\n", $field['options']) as $opt): ?>
+                    <option value="<?= trim($opt) ?>"><?= trim($opt) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php break;
+
+                    case 'radio': ?>
+                <?php foreach (explode("\n", $field['options']) as $opt): ?>
+                <label>
+                    <input type="radio" name="<?= $name ?>" value="<?= trim($opt) ?>">
+                    <?= trim($opt) ?>
+                </label><br>
+                <?php endforeach; ?>
+                <?php break;
+
+                    case 'checkbox': ?>
+                <?php foreach (explode("\n", $field['options']) as $opt): ?>
+                <label>
+                    <input type="checkbox" name="<?= $name ?>[]" value="<?= trim($opt) ?>">
+                    <?= trim($opt) ?>
+                </label><br>
+                <?php endforeach; ?>
+                <?php break;
+
+                } ?>
+
+            </div>
+
+            <?php endforeach; ?>
+
+            <button type="submit">Submit</button>
+
+        </form>
+
+    </div>
+
+</body>
+
+</html>

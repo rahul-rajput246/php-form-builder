@@ -1,6 +1,7 @@
 <?php
 
 require_once '../config/database.php';
+require_once 'includes/auth.php';
 
 $id = (int)$_GET['id'];
 
@@ -66,7 +67,7 @@ if (isset($_POST['update_form'])) {
 
         <div class="container">
 
-            <h2>Edit Form</h2>
+            <h2 style="margin-bottom: 20px;">Edit Form</h2>
 
             <?php if(!empty($error)): ?>
             <div class="error">

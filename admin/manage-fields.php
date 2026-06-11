@@ -1,6 +1,7 @@
 <?php
 
 require_once '../config/database.php';
+require_once 'includes/auth.php';
 
 $form_id = isset($_GET['form_id']) ? (int)$_GET['form_id'] : 0;
 
@@ -72,6 +73,8 @@ $fields = $fieldStmt->get_result();
 
         <div class="container">
 
+
+
             <div class="main-heading-box">
                 <h2>Manage Fields :<?= htmlspecialchars($form['name']) ?></h2>
                 <a href="forms.php" class="btn btn-secondary">
@@ -99,7 +102,7 @@ $fields = $fieldStmt->get_result();
 
                             <option value="text">Text</option>
                             <option value="email">Email</option>
-                            <option value="number">Number</option>
+                            <option value="number" min="0" max="10">Number</option>
                             <option value="textarea">Textarea</option>
                             <option value="dropdown">Dropdown</option>
                             <option value="radio">Radio</option>
@@ -111,23 +114,25 @@ $fields = $fieldStmt->get_result();
 
                     <div class="form-group" id="optionsBox" style="display:none;">
                         <label>Options</label>
-                        <textarea name="options" placeholder="One option per line
-                    Male
-                    Female
-                    Other">
-                </textarea>
-
+                        <textarea name="options"
+                            placeholder="One option per line&#10;Male&#10;Female&#10;Other"></textarea>
                     </div>
 
                     <div class="builder-preview">
                         <div id="previewContainer"></div>
                     </div>
 
-                    <button type="button" id="previewFieldBtn">
-                        Add Field
-                    </button>
+                    <div class="form-group required-checkbox">
 
-                    <button type="submit" name="add_field" class="btn">
+                        <input type="checkbox" id="requiredField" name="required">
+
+                        <label for="requiredField">
+                            Required Field
+                        </label>
+
+                    </div>
+
+                    <button type="submit" name="add_field" class="btn btn-save">
                         Save Field
                     </button>
 
@@ -166,7 +171,7 @@ $fields = $fieldStmt->get_result();
                                 Edit
                             </a>
 
-                            <a href="delete-field.php?id=<?= $field['id']; ?>&form_id=<?= $form_id; ?>"
+                            <a href="delete.php?type=field&id=<?= $field['id']; ?>&form_id=<?= $form_id; ?>"
                                 class="btn btn-delete" onclick="return confirm('Delete this field?')">
                                 Delete
                             </a>
